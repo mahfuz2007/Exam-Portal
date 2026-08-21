@@ -1,0 +1,1781 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>পরীক্ষা পোর্টাল | Exam Portal</title>
+
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Google Fonts: Bengali + Latin pairing -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Hind+Siliguri:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<!-- MathJax v3 -->
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$','$$'],['\\[','\\]']] },
+    svg: { fontCache: 'global', scale: 1, minScale: 0.6 },
+    chtml: { scale: 1, minScale: 0.6 },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+  };
+</script>
+<script id="MathJax-script" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
+
+<style>
+  :root{
+    --ink:#0F172A;
+    --paper:#F8FAFC;
+    --paper-2:#FFFFFF;
+    --rule:#E7E8F3;
+    --navy:#4F46E5;         /* indigo — primary accent */
+    --navy-2:#7C3AED;       /* violet — banner gradient end */
+    --gold:#EC4899;         /* pink/rose — secondary accent */
+    --gold-soft:#FCE7F3;
+    --select-bg:#EEF2FF;    /* soft indigo tint for selected options */
+    --ok:#059669;
+    --ok-soft:#D1FAE5;
+    --amber:#B45309;
+    --amber-soft:#FEF3C7;
+    --bad:#DC2626;
+    --muted:#64748B;
+    --card-shadow: 0 1px 2px rgba(15,23,42,0.04), 0 10px 25px -5px rgba(0,0,0,0.08);
+  }
+  html.dark{
+    --ink:#E7ECF5;
+    --paper:#0F172A;        /* crisp slate-900 — dark mode background */
+    --paper-2:#1E293B;      /* slate-800 — dark mode cards */
+    --rule:#324058;
+    --navy:#6366F1;         /* neon indigo — dark mode primary */
+    --navy-2:#8B5CF6;       /* violet, banner gradient end */
+    --gold:#F472B6;         /* pink, lightened for dark bg */
+    --gold-soft:#3A1E33;
+    --select-bg:#242F4D;
+    --ok:#14B8A6;           /* teal — dark mode success accent */
+    --ok-soft:#0F3D38;
+    --amber:#FBBF24;
+    --amber-soft:#3A2E12;
+    --bad:#F87171;
+    --muted:#94A3B8;
+    --card-shadow: 0 1px 2px rgba(0,0,0,0.5), 0 10px 28px -6px rgba(0,0,0,0.55);
+  }
+  *{ box-sizing:border-box; }
+  html{ font-size:16px; }
+  /* Increase overall base scale specifically on laptop/desktop viewports so every
+     rem-based Tailwind heading/body size (headings, labels, badges) scales up
+     proportionately, without over-enlarging small mobile screens. */
+  @media (min-width:768px){ html{ font-size:17.5px; } }
+  @media (min-width:1280px){ html{ font-size:18px; } }
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Hind Siliguri','Plus Jakarta Sans',sans-serif;
+    font-size:1rem;
+    line-height:1.65;
+    transition:background .25s ease, color .25s ease;
+    min-height:100vh;
+  }
+  .font-display{ font-family:'Plus Jakarta Sans','Hind Siliguri',sans-serif; }
+  .font-mono{ font-family:'JetBrains Mono',monospace; }
+
+  /* ---------------------------------------------------------------------
+     Fluid, responsive exam typography.
+     clamp() gives smooth scaling between breakpoints; the @media rules
+     pin the exact anchor sizes requested for mobile (<768px) and
+     laptop/desktop (>=768px). Sizes are in px so they stay exact
+     regardless of the root font-size bump used for general headings.
+     --------------------------------------------------------------------- */
+  .question-text{
+    font-weight:700;
+    line-height:1.6;
+    letter-spacing:.005em;
+    overflow-wrap:break-word;
+    word-break:break-word;
+    font-size: clamp(16px, 15px + 0.6vw, 18px);
+  }
+  .option-text{
+    line-height:1.5;
+    overflow-wrap:break-word;
+    word-break:break-word;
+    font-size: clamp(15px, 14.3px + 0.5vw, 16px);
+  }
+  @media (max-width:767.98px){
+    .question-text{ font-size:16px; }               /* 1rem   — mobile */
+    .option-text{ font-size:15px; }                  /* 0.9375rem — mobile */
+    .question-text mjx-container, .option-text mjx-container{ font-size:100% !important; }
+  }
+  @media (min-width:768px){
+    .question-text{ font-size:18px; }                /* 1.125rem — desktop */
+    .option-text{ font-size:16px; }                   /* 1rem — desktop */
+    .question-text mjx-container, .option-text mjx-container{ font-size:105% !important; }
+  }
+  /* Keep every rendered formula inside its column — scroll instead of overflow */
+  mjx-container{ max-width:100%; }
+  mjx-container[display="true"], mjx-container[jax="SVG"][display="true"]{
+    overflow-x:auto; overflow-y:hidden; max-width:100%; display:block !important;
+  }
+
+  .card{
+    background:var(--paper-2);
+    border:1px solid var(--rule);
+    border-radius:20px;
+    box-shadow:var(--card-shadow);
+  }
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:.4rem;
+    padding:.6rem 1.1rem; border-radius:12px; font-weight:600; font-size:.92rem;
+    transition:all .15s ease; border:1px solid transparent; cursor:pointer;
+    white-space:nowrap;
+  }
+  .btn-primary{ background:linear-gradient(135deg, var(--navy), var(--navy-2)); color:#fff; }
+  .btn-primary:hover{ filter:brightness(1.1); transform:translateY(-1px); }
+  html.dark .btn-primary{ box-shadow:0 0 18px rgba(99,102,241,.45); }
+  html.dark .btn-primary:hover{ box-shadow:0 0 26px rgba(99,102,241,.65); }
+  .btn-emerald{ background:linear-gradient(135deg, var(--ok), #10B981); color:#fff; }
+  .btn-emerald:hover{ filter:brightness(1.1); transform:translateY(-1px); }
+  html.dark .btn-emerald{ box-shadow:0 0 18px rgba(20,184,166,.45); }
+  html.dark .btn-emerald:hover{ box-shadow:0 0 26px rgba(20,184,166,.65); }
+  .btn-gold{ background:var(--gold); color:#fff; }
+  .btn-gold:hover{ filter:brightness(1.08); transform:translateY(-1px); }
+  .btn-outline{ background:transparent; border:1px solid var(--rule); color:var(--ink); }
+  .btn-outline:hover{ border-color:var(--navy); }
+  .btn-danger{ background:var(--bad); color:#fff; }
+  .btn-danger:hover{ filter:brightness(1.1); }
+  .btn-sm{ padding:.35rem .7rem; font-size:.8rem; border-radius:9px; }
+  .btn:disabled{ opacity:.45; cursor:not-allowed; transform:none !important; box-shadow:none !important; }
+
+  .input, select, textarea.input{
+    width:100%; padding:.6rem .8rem; border-radius:10px;
+    border:1px solid var(--rule); background:var(--paper-2); color:var(--ink);
+    font-family:inherit; font-size:.92rem; outline:none;
+  }
+  .input:focus, select:focus, textarea.input:focus{ border-color:var(--navy); box-shadow:0 0 0 3px rgba(79,70,229,.15); }
+  html.dark .input:focus, html.dark select:focus, html.dark textarea.input:focus{ box-shadow:0 0 0 3px rgba(99,102,241,.3); }
+  label.field-label{ font-size:.8rem; font-weight:600; color:var(--muted); margin-bottom:.3rem; display:block; }
+
+  .tab-btn{
+    padding:.55rem 1rem; border-radius:10px; font-weight:600; font-size:.88rem;
+    color:var(--muted); cursor:pointer; border:1px solid transparent; white-space:nowrap;
+  }
+  .tab-btn.active{ background:linear-gradient(135deg, var(--navy), var(--navy-2)); color:#fff; }
+  html.dark .tab-btn.active{ box-shadow:0 0 14px rgba(99,102,241,.4); }
+
+  .badge{ font-size:.72rem; font-weight:700; padding:.2rem .55rem; border-radius:999px; letter-spacing:.02em; }
+  .badge-ok{ background:var(--ok-soft); color:var(--ok); }
+  .badge-bad{ background:rgba(220,38,38,.12); color:var(--bad); }
+  .badge-gold{ background:var(--gold-soft); color:var(--gold); }
+  .badge-amber{ background:var(--amber-soft); color:var(--amber); }
+  .badge-muted{ background:rgba(100,116,139,.12); color:var(--muted); }
+
+  .progress-track{ height:10px; background:var(--rule); border-radius:999px; overflow:hidden; }
+  .progress-fill{ height:100%; background:linear-gradient(90deg,var(--gold),var(--navy)); border-radius:999px; transition:width .4s ease; }
+
+  .ring{ transform:rotate(-90deg); }
+  .ring-bg{ stroke:var(--rule); }
+  .ring-fill{ stroke:var(--gold); transition:stroke-dashoffset .5s ease; }
+
+  ::-webkit-scrollbar{ width:10px; height:10px; }
+  ::-webkit-scrollbar-thumb{ background:var(--rule); border-radius:999px; }
+  ::-webkit-scrollbar-track{ background:transparent; }
+
+  .fade-in{ animation:fadeIn .3s ease; }
+  @keyframes fadeIn{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+
+  .violation-overlay{
+    position:fixed; inset:0; background:rgba(220,38,38,.96); color:#fff; z-index:9999;
+    display:flex; align-items:center; justify-content:center; flex-direction:column; gap:1rem;
+    text-align:center; padding:2rem;
+  }
+
+  #printArea{ display:none; }
+  @media print{
+    body *{ visibility:hidden; }
+    #printArea, #printArea *{ visibility:visible; }
+    #printArea{ display:block !important; position:absolute; left:0; top:0; width:100%; padding:20px; background:#fff; color:#000; }
+    .no-print{ display:none !important; }
+    #printArea .p-question{ page-break-inside:avoid; border-bottom:1px solid #ccc; padding:10px 0; }
+  }
+
+  .status-dot{
+    width:7px; height:7px; border-radius:999px; background:#10B981; display:inline-block;
+    box-shadow:0 0 0 0 rgba(16,185,129,.6); animation:pulseDot 2s infinite;
+  }
+  @keyframes pulseDot{
+    0%{ box-shadow:0 0 0 0 rgba(16,185,129,.5); }
+    70%{ box-shadow:0 0 0 6px rgba(16,185,129,0); }
+    100%{ box-shadow:0 0 0 0 rgba(16,185,129,0); }
+  }
+  .heatcell{
+     width:100%; min-height:30px; aspect-ratio:auto; border-radius:9px; display:flex;
+     align-items:center; justify-content:center; font-size:11px; font-weight:700;
+     transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .heatcell:hover{ transform:translateY(-1px) scale(1.03); }
+  .banner-gradient{
+     background:linear-gradient(135deg,#4c1d95 0%,#6d28d9 50%,#4f46e5 100%);
+     border:none; color:#fff;
+  }
+  .daily-target-card{ background:#F5F3FF; border-color:#DDD6FE; }
+  html.dark .daily-target-card{ background:rgba(76,29,149,.18); border-color:rgba(139,92,246,.38); }
+  .weekly-schedule-card{ background:#EEF2FF; border-color:#C7D2FE; }
+  html.dark .weekly-schedule-card{ background:rgba(30,27,75,.42); border-color:rgba(99,102,241,.38); }
+
+  /* Luxury two-section application shell */
+  .portal-shell{ min-height:100vh; display:flex; background:var(--paper); }
+  .portal-sidebar{
+    position:fixed; inset:0 auto 0 0; width:248px; z-index:50;
+    background:linear-gradient(180deg,#17104a 0%,#21145f 48%,#0f172a 100%);
+    color:#fff; border-right:1px solid rgba(255,255,255,.10);
+    display:flex; flex-direction:column; padding:18px 14px;
+  }
+  .portal-brand{ display:flex; align-items:center; gap:11px; padding:10px 10px 18px; border-bottom:1px solid rgba(255,255,255,.10); margin-bottom:16px; }
+  .portal-brand-mark{ width:38px; height:38px; border-radius:12px; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#6d28d9,#4f46e5); box-shadow:0 8px 24px rgba(79,70,229,.34); font-weight:900; color:#fff; }
+  .portal-brand-title{ font-family:'Plus Jakarta Sans','Hind Siliguri',sans-serif; font-weight:800; font-size:15px; }
+  .portal-brand-role{ font-size:10px; color:#c4b5fd; margin-top:1px; }
+  .portal-nav{ display:flex; flex-direction:column; gap:5px; flex:1; }
+  .portal-nav-btn{ width:100%; display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:11px; border:1px solid transparent; background:transparent; color:#cbd5e1; font:600 .86rem 'Hind Siliguri',sans-serif; cursor:pointer; text-align:left; transition:all .16s ease; }
+  .portal-nav-btn:hover{ color:#fff; background:rgba(255,255,255,.07); transform:translateX(2px); }
+  .portal-nav-btn.active{ color:#fff; background:linear-gradient(135deg,#6d28d9,#4f46e5); box-shadow:0 8px 22px rgba(79,70,229,.32); }
+  .portal-nav-icon{ width:24px; text-align:center; font-size:16px; }
+  .portal-sidebar-footer{ padding:12px; border-radius:13px; background:linear-gradient(135deg,rgba(5,150,105,.16),rgba(109,40,217,.18)); border:1px solid rgba(255,255,255,.08); }
+  .portal-main{ width:calc(100% - 248px); margin-left:248px; min-width:0; }
+  .portal-mobile-nav{ display:none; }
+  .portal-content{ max-width:1380px; margin:0 auto; padding:24px 26px 40px; }
+  .portal-page-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:18px; }
+  .portal-page-title{ font-family:'Plus Jakarta Sans','Hind Siliguri',sans-serif; font-weight:800; color:var(--navy); font-size:1.22rem; }
+  .portal-page-subtitle{ color:var(--muted); font-size:.78rem; margin-top:2px; }
+  .portal-section-switch{ display:inline-flex; gap:4px; padding:4px; border-radius:12px; background:var(--paper-2); border:1px solid var(--rule); box-shadow:0 5px 18px rgba(15,23,42,.05); }
+  .portal-switch-btn{ border:0; background:transparent; padding:7px 11px; border-radius:9px; font-size:.75rem; font-weight:700; color:var(--muted); cursor:pointer; }
+  .portal-switch-btn.active{ background:var(--select-bg); color:var(--navy); }
+  .schedule-day-bar{ min-height:42px; width:100%; padding:5px 7px; border-radius:11px; border:1px solid var(--rule); background:var(--paper-2); display:flex; align-items:center; justify-content:center; gap:4px; font-size:.67rem; font-weight:800; color:var(--muted); transition:all .15s ease; }
+  .schedule-day-bar:hover{ border-color:var(--navy); transform:translateY(-1px); }
+  .schedule-day-bar.has-exam{ border-color:var(--navy); color:var(--navy); background:var(--select-bg); }
+  html.dark .schedule-day-bar{ background:rgba(30,41,59,.72); }
+  html.dark .schedule-day-bar.has-exam{ background:rgba(79,70,229,.18); }
+  @media (max-width: 900px){
+    .portal-sidebar{ display:none; }
+    .portal-main{ width:100%; margin-left:0; }
+    .portal-mobile-nav{ display:flex; position:sticky; top:0; z-index:45; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px; background:color-mix(in srgb,var(--paper-2) 92%,transparent); backdrop-filter:blur(12px); border-bottom:1px solid var(--rule); }
+    .portal-content{ padding:18px 14px 30px; }
+  }
+  @media (max-width: 640px){
+    .portal-section-switch{ display:none; }
+    .portal-content{ padding:14px 10px 24px; }
+    .schedule-day-bar{ min-height:38px; padding:4px 2px; font-size:.58rem; }
+    .heatcell{ min-height:28px; font-size:10px; }
+  }
+  .chapter-row{ border-bottom:1px dashed var(--rule); }
+  .chapter-row:last-child{ border-bottom:none; }
+
+  .option-row{
+    border:1.5px solid var(--rule); border-radius:12px; cursor:pointer;
+    padding: clamp(.8rem, .7rem + .6vw, .95rem) clamp(.9rem, .8rem + .6vw, 1.15rem);
+    transition:all .12s ease;
+  }
+  .option-row:hover{ border-color:var(--navy); }
+  .option-row.selected{ border-color:var(--navy); background:var(--select-bg); box-shadow:0 0 0 1px var(--navy) inset; }
+  .option-row.correct{ border-color:var(--ok); background:var(--ok-soft); }
+  .option-row.incorrect{ border-color:var(--bad); background:rgba(220,38,38,.1); }
+  @media (max-width:767.98px){
+    .option-row{ padding:.8rem .95rem; }
+  }
+  @media (min-width:768px){
+    .option-row{ padding:.95rem 1.15rem; }
+  }
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+<div id="printArea"></div>
+
+<script>
+/* =========================================================================
+   DYNAMIC WRITTEN-STYLE ONLINE EXAM PORTAL — single-file application
+   Data persistence: localStorage
+   ========================================================================= */
+
+const DB_KEY = 'examPortal_v1_data';
+const SESSION_KEY = 'examPortal_v1_session';
+const EXAM_PROGRESS_PREFIX = 'examPortal_v1_progress_';
+
+function uid(prefix){ return prefix + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+
+function defaultDB(){
+  return {
+    adminPassword: 'admin123',
+    subjects: [        // {id, name, chapters:[{id,name,completed}]}
+      { id:'sub_physics', name:'Physics', chapters:[
+        { id:'ch_phy_p1', name:'Paper 1', completed:false },
+        { id:'ch_phy_p2', name:'Paper 2', completed:false }
+      ]},
+      { id:'sub_chem', name:'Chemistry', chapters:[
+        { id:'ch_chem_p1', name:'Paper 1', completed:false },
+        { id:'ch_chem_p2', name:'Paper 2', completed:false }
+      ]},
+      { id:'sub_hmath', name:'Higher Math', chapters:[
+        { id:'ch_hmath_p1', name:'Paper 1', completed:false },
+        { id:'ch_hmath_p2', name:'Paper 2', completed:false }
+      ]},
+      { id:'sub_eng', name:'English', chapters:[
+        { id:'ch_eng_p1', name:'Paper 1', completed:false },
+        { id:'ch_eng_p2', name:'Paper 2', completed:false }
+      ]}
+    ],
+    exams: [],         // {id,title,subjectId,chapterId,startTime,endTime,duration,positiveMarks,negativeMarks,visible,questions:[],createdAt}
+    students: [         // {id,name,roll(=Student ID),password,dailyTarget,weeklySchedule}
+      { id: 'stu_default_prokriti', name: 'Prokriti', roll: 'prokriti', password: '1497499', dailyTarget:null, weeklySchedule:{} }
+    ],
+    results: []          // {id,studentId,studentName,examId,examTitle,subject,chapter,answers,score,totalMarks,correct,incorrect,unattempted,violations,date}
+  };
+}
+
+/* Case-insensitive lookup helper for Student ID */
+function findStudentByRoll(roll){
+  const key = (roll||'').trim().toLowerCase();
+  return DB.students.find(s => s.roll.trim().toLowerCase() === key) || null;
+}
+
+function loadDB(){
+  try{
+    const raw = localStorage.getItem(DB_KEY);
+    if(!raw) { const d = defaultDB(); saveDB(d); return d; }
+    const d = JSON.parse(raw);
+    // migration safety: ensure required fields exist on data saved by older versions
+    if(!Array.isArray(d.students)) d.students = [];
+    d.students.forEach(s => {
+      if(s.password === undefined) s.password = '';
+      if(s.dailyTarget === undefined) s.dailyTarget = null;
+      if(!s.weeklySchedule) s.weeklySchedule = {};
+    });
+    if(!d.students.some(s => s.roll && s.roll.trim().toLowerCase() === 'prokriti')){
+      d.students.push({ id: 'stu_default_prokriti', name: 'Prokriti', roll: 'prokriti', password: '1497499', dailyTarget:null, weeklySchedule:{} });
+    }
+    return d;
+  }catch(e){ console.error(e); const d = defaultDB(); saveDB(d); return d; }
+}
+function saveDB(db){ localStorage.setItem(DB_KEY, JSON.stringify(db)); }
+
+let DB = loadDB();
+
+function getSession(){ try{ return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); }catch(e){ return null; } }
+function setSession(s){ if(s) localStorage.setItem(SESSION_KEY, JSON.stringify(s)); else localStorage.removeItem(SESSION_KEY); }
+
+/* ---------------- global UI state (not persisted) ---------------- */
+const UI = {
+  view: 'login',            // login | adminDashboard | studentDashboard | examRunner | examResult
+  adminTab: 'overview',
+  studentTab: 'dashboard',
+  examSession: null,        // active exam-taking state
+  resultView: null,         // result id being viewed
+  toast: null,
+  showDailyPicker: false,      // daily-target exam picker open/closed
+  showWeeklyPickerDay: null    // which weekly-schedule day slot's picker is open
+};
+
+function typeset(){
+  if(window.MathJax && MathJax.typesetPromise){
+    MathJax.typesetPromise().catch(()=>{});
+  }
+}
+
+function escapeHtml(str){
+  if(str===undefined || str===null) return '';
+  return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+}
+
+function showToast(msg, type){
+  UI.toast = {msg, type: type||'info'};
+  render();
+  setTimeout(()=>{ UI.toast=null; renderToastOnly(); }, 2600);
+}
+function renderToastOnly(){
+  const el = document.getElementById('toastHost');
+  if(el) el.remove();
+}
+
+/* =========================================================================
+   THEME
+   ========================================================================= */
+function initTheme(){
+  const t = localStorage.getItem('examPortal_theme') || 'light';
+  document.documentElement.classList.toggle('dark', t === 'dark');
+}
+function toggleTheme(){
+  const isDark = document.documentElement.classList.toggle('dark');
+  localStorage.setItem('examPortal_theme', isDark ? 'dark' : 'light');
+  render();
+}
+initTheme();
+
+/* =========================================================================
+   SYLLABUS HELPERS
+   ========================================================================= */
+function allChapters(){
+  const out = [];
+  DB.subjects.forEach(s => s.chapters.forEach(c => out.push({subject:s, chapter:c})));
+  return out;
+}
+function syllabusProgress(){
+  const all = allChapters();
+  if(all.length===0) return 0;
+  const done = all.filter(x=>x.chapter.completed).length;
+  return Math.round((done/all.length)*100);
+}
+function markChapterCompleted(subjectId, chapterId){
+  const s = DB.subjects.find(s=>s.id===subjectId);
+  if(!s) return;
+  const c = s.chapters.find(c=>c.id===chapterId);
+  if(c) c.completed = true;
+  saveDB(DB);
+}
+
+/* =========================================================================
+   AUTH
+   ========================================================================= */
+function loginAdmin(password){
+  if(password === DB.adminPassword){
+    setSession({role:'admin'});
+    UI.view = 'adminDashboard'; UI.adminTab='overview';
+    render();
+  } else {
+    showToast('ভুল পাসওয়ার্ড! Wrong password.', 'error');
+  }
+}
+function loginStudent(roll, password){
+  roll = (roll||'').trim(); password = (password||'').trim();
+  if(!roll || !password){ showToast('স্টুডেন্ট আইডি এবং পাসওয়ার্ড উভয়ই দিন।', 'error'); return; }
+
+  // Student ID lookup is CASE-INSENSITIVE (prokriti / PROKRITI / Prokriti all match)
+  let student = findStudentByRoll(roll);
+
+  if(student){
+    if(student.password !== password){
+      showToast('ভুল পাসওয়ার্ড! Incorrect password.', 'error');
+      return;
+    }
+  } else {
+    // First-time login auto-creates the profile; display name is derived from the ID.
+    const displayName = roll.charAt(0).toUpperCase() + roll.slice(1);
+    student = {id: uid('stu'), name: displayName, roll, password};
+    DB.students.push(student);
+    saveDB(DB);
+  }
+  setSession({role:'student', studentId: student.id});
+  UI.view = 'studentDashboard'; UI.studentTab='dashboard';
+  render();
+}
+function logout(){
+  setSession(null);
+  UI.view = 'login';
+  render();
+}
+function currentStudent(){
+  const s = getSession();
+  if(!s || s.role!=='student') return null;
+  return DB.students.find(x=>x.id===s.studentId) || null;
+}
+
+/* =========================================================================
+   RENDER ROOT
+   ========================================================================= */
+function render(){
+  DB = loadDB(); // keep fresh in case of import
+  const session = getSession();
+  const app = document.getElementById('app');
+
+  if(!session){
+    app.innerHTML = renderLogin();
+  } else if(session.role === 'admin'){
+    if(UI.view === 'examResult'){ app.innerHTML = renderResultDetail(UI.resultView, 'admin'); }
+    else { app.innerHTML = renderAdminShell(); }
+  } else if(session.role === 'student'){
+    if(UI.view === 'examRunner' && UI.examSession){ app.innerHTML = renderExamRunner(); }
+    else if(UI.view === 'examResult'){ app.innerHTML = renderResultDetail(UI.resultView, 'student'); }
+    else { app.innerHTML = renderStudentShell(); }
+  }
+
+  if(UI.toast){
+    app.insertAdjacentHTML('beforeend', renderToast());
+  }
+
+  typeset();
+  attachGlobalHandlers();
+}
+
+function renderToast(){
+  const t = UI.toast;
+  const color = t.type==='error' ? 'var(--bad)' : (t.type==='success' ? 'var(--ok)' : 'var(--navy)');
+  return `<div id="toastHost" style="position:fixed;bottom:20px;right:20px;z-index:99999;background:${color};color:#fff;padding:.8rem 1.2rem;border-radius:10px;box-shadow:var(--card-shadow);font-weight:600;font-size:.9rem;max-width:320px;" class="fade-in">${escapeHtml(t.msg)}</div>`;
+}
+
+/* =========================================================================
+   LOGIN VIEW
+   ========================================================================= */
+let loginTab = 'student';
+function renderLogin(){
+  return `
+  <div class="min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-md fade-in">
+      <div class="text-center mb-6">
+        <div class="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center mb-3" style="background:var(--navy);">
+          <span style="font-size:28px;">📘</span>
+        </div>
+        <h1 class="font-display text-2xl font-extrabold" style="color:var(--navy);">Exam Portal</h1>
+        <p class="text-sm mt-1" style="color:var(--muted);">Md. Mahfuz Hossain Khan | Precise Mentorship Program | Engineering Admission Preparation 2026-27</p>
+      </div>
+
+      <div class="card p-6">
+        <div class="flex gap-2 mb-5">
+          <button onclick="loginTab='student'; render();" class="tab-btn flex-1 text-center ${loginTab==='student'?'active':''}">🎓 শিক্ষার্থী Student</button>
+          <button onclick="loginTab='admin'; render();" class="tab-btn flex-1 text-center ${loginTab==='admin'?'active':''}">🛡️ Admin</button>
+        </div>
+
+        ${loginTab==='student' ? `
+          <div class="space-y-3">
+            <div>
+              <label class="field-label">স্টুডেন্ট আইডি / Student ID</label>
+              <input id="stuRoll" class="input" placeholder="আপনার আইডি লিখুন" autocapitalize="none" autocomplete="username" />
+            </div>
+            <div>
+              <label class="field-label">পাসওয়ার্ড / Password</label>
+              <input id="stuPass" type="password" class="input" placeholder="আপনার পাসওয়ার্ড লিখুন" autocomplete="current-password" onkeydown="if(event.key==='Enter'){doStudentLogin();}" />
+            </div>
+            <button class="btn btn-primary w-full mt-2" onclick="doStudentLogin()">লগইন করুন / Login</button>
+          </div>
+        ` : `
+          <div class="space-y-3">
+            <div>
+              <label class="field-label">Admin Password</label>
+              <input id="adminPass" type="password" class="input" placeholder="পাসওয়ার্ড লিখুন" onkeydown="if(event.key==='Enter'){doAdminLogin();}" />
+            </div>
+            <button class="btn btn-emerald w-full mt-2" onclick="doAdminLogin()">Admin Login</button>
+          </div>
+        `}
+      </div>
+      <p class="text-center text-xs mt-4" style="color:var(--muted);">সকল ডেটা আপনার ব্রাউজারে (LocalStorage) সংরক্ষিত থাকে।</p>
+    </div>
+  </div>`;
+}
+function doStudentLogin(){
+  loginStudent(
+    document.getElementById('stuRoll').value,
+    document.getElementById('stuPass').value
+  );
+}
+function doAdminLogin(){
+  loginAdmin(document.getElementById('adminPass').value);
+}
+
+/* =========================================================================
+   SHARED TOPBAR
+   ========================================================================= */
+function topbar(roleLabel, name){
+  const dark = document.documentElement.classList.contains('dark');
+  const initials = (name||'?').trim().split(/\s+/).filter(Boolean).map(w=>w[0]).slice(0,2).join('').toUpperCase() || '?';
+  return `
+  <div class="sticky top-0 z-40 no-print" style="background:color-mix(in srgb, var(--paper-2) 88%, transparent); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); border-bottom:1px solid var(--rule);">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
+      <div class="flex items-center gap-2">
+        <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:var(--navy);"><span style="color:#fff; font-weight:800;">E</span></div>
+        <div>
+          <div class="font-display font-bold text-sm leading-tight" style="color:var(--navy);">Exam Portal</div>
+          <div class="text-[11px]" style="color:var(--muted);">${roleLabel}</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 sm:gap-3">
+        <div class="hidden sm:flex items-center gap-2 pl-1.5 pr-3 py-1 rounded-full" style="background:var(--paper); border:1px solid var(--rule);">
+          <div class="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold font-display" style="background:var(--gold-soft); color:var(--gold);">${escapeHtml(initials)}</div>
+          <span class="text-xs font-semibold">${escapeHtml(name)}</span>
+          <span class="flex items-center gap-1 text-[10px] font-bold pl-2 pr-2.5 py-0.5 rounded-full" style="background:var(--ok-soft); color:var(--ok);"><span class="status-dot"></span>Active</span>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="toggleTheme()">${dark?'☀️':'🌙'}</button>
+        <button class="btn btn-outline btn-sm" onclick="logout()">লগআউট</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* =========================================================================
+   ADMIN SHELL
+   ========================================================================= */
+function renderAdminShell(){
+  const tabs = [
+    ['overview','ওভারভিউ','⌂'], ['syllabus','সিলেবাস ম্যানেজার','▣'], ['create','নতুন পরীক্ষা','＋'],
+    ['manage','পরীক্ষা ব্যবস্থাপনা','☷'], ['analytics','অ্যানালিটিক্স','▥'], ['backup','ব্যাকআপ / রিস্টোর','↥'], ['settings','সেটিংস','⚙']
+  ];
+  return `
+  <div class="portal-shell">
+    <aside class="portal-sidebar no-print">
+      <div class="portal-brand"><div class="portal-brand-mark">E</div><div><div class="portal-brand-title">Exam Portal</div><div class="portal-brand-role">ADMIN CONTROL CENTER</div></div></div>
+      <div class="portal-nav">
+        ${tabs.map(t=>`<button class="portal-nav-btn ${UI.adminTab===t[0]?'active':''}" onclick="setAdminTab('${t[0]}')"><span class="portal-nav-icon">${t[2]}</span><span>${t[1]}</span></button>`).join('')}
+      </div>
+      <div class="portal-sidebar-footer"><div class="text-xs font-bold mb-1"><span class="status-dot"></span> সিস্টেম অনলাইন</div><div class="text-[10px]" style="color:#cbd5e1;">Admin workspace · Secure local storage</div></div>
+    </aside>
+    <main class="portal-main">
+      ${topbar('Admin Panel','Administrator')}
+      <div class="portal-mobile-nav no-print"><div class="font-display font-bold text-sm" style="color:var(--navy);">Admin Panel</div><div class="flex gap-1 overflow-x-auto">${tabs.map(t=>`<button class="portal-switch-btn ${UI.adminTab===t[0]?'active':''}" onclick="setAdminTab('${t[0]}')">${t[1]}</button>`).join('')}</div></div>
+      <div class="portal-content">
+        <div class="portal-page-head"><div><div class="portal-page-title">অ্যাডমিন ড্যাশবোর্ড</div><div class="portal-page-subtitle">পরীক্ষা, সিলেবাস, শিক্ষার্থী ও ফলাফল এক জায়গা থেকে পরিচালনা করুন</div></div>
+          <div class="portal-section-switch no-print"><button class="portal-switch-btn active">🛡️ Admin Section</button></div>
+        </div>
+        <div class="fade-in">${ UI.adminTab==='overview' ? renderAdminOverview() : UI.adminTab==='syllabus' ? renderAdminSyllabus() : UI.adminTab==='create' ? renderAdminCreateExam() : UI.adminTab==='manage' ? renderAdminManageExams() : UI.adminTab==='analytics' ? renderAdminAnalytics() : UI.adminTab==='backup' ? renderAdminBackup() : renderAdminSettings() }</div>
+      </div>
+    </main>
+  </div>`;
+}
+function setAdminTab(t){ UI.adminTab = t; render(); }
+
+function renderAdminOverview(){
+  const progress = syllabusProgress();
+  const totalExams = DB.exams.length;
+  const totalStudents = DB.students.length;
+  const totalAttempts = DB.results.length;
+  const avgScore = totalAttempts ? Math.round(DB.results.reduce((a,r)=>a + (r.totalMarks? (r.score/r.totalMarks*100):0),0)/totalAttempts) : 0;
+
+  const statCard = (label, value, sub, icon) => `
+    <div class="card p-5">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xs font-semibold" style="color:var(--muted);">${label}</span>
+        <span>${icon}</span>
+      </div>
+      <div class="text-2xl font-bold font-display" style="color:var(--navy);">${value}</div>
+      <div class="text-xs mt-1" style="color:var(--muted);">${sub}</div>
+    </div>`;
+
+  return `
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    ${statCard('মোট পরীক্ষা', totalExams, 'Total Exams', '📝')}
+    ${statCard('শিক্ষার্থী', totalStudents, 'Registered Students', '🎓')}
+    ${statCard('মোট এটেম্পট', totalAttempts, 'Total Attempts', '📊')}
+    ${statCard('গড় স্কোর', avgScore+'%', 'Average Score', '⭐')}
+  </div>
+
+  <div class="card p-6 mb-6">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="font-display font-bold text-lg" style="color:var(--navy);">সম্পূর্ণ সিলেবাস অগ্রগতি</h3>
+      <span class="badge badge-gold">${progress}%</span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" style="width:${progress}%;"></div></div>
+    <p class="text-xs mt-2" style="color:var(--muted);">${allChapters().filter(x=>x.chapter.completed).length} / ${allChapters().length} chapters completed</p>
+  </div>
+
+  <div class="card p-6">
+    <h3 class="font-display font-bold text-lg mb-3" style="color:var(--navy);">সাম্প্রতিক এটেম্পট</h3>
+    ${DB.results.length===0 ? `<p class="text-sm" style="color:var(--muted);">এখনো কোনো এটেম্পট নেই।</p>` :
+      `<div class="overflow-x-auto"><table class="w-full text-sm">
+        <thead><tr class="text-left" style="color:var(--muted);"><th class="py-2">শিক্ষার্থী</th><th>পরীক্ষা</th><th>স্কোর</th><th>তারিখ</th></tr></thead>
+        <tbody>
+        ${[...DB.results].reverse().slice(0,6).map(r=>`
+          <tr class="chapter-row cursor-pointer" onclick="viewResult('${r.id}','admin')">
+            <td class="py-2">${escapeHtml(r.studentName)}</td>
+            <td>${escapeHtml(r.examTitle)}</td>
+            <td>${r.score}/${r.totalMarks}</td>
+            <td class="text-xs">${new Date(r.date).toLocaleString('bn-BD')}</td>
+          </tr>`).join('')}
+        </tbody></table></div>`}
+  </div>`;
+}
+
+/* ---------- SYLLABUS MANAGER ---------- */
+function renderAdminSyllabus(){
+  return `
+  <div class="grid md:grid-cols-3 gap-6">
+    <div class="card p-6 md:col-span-1 h-fit">
+      <h3 class="font-display font-bold text-lg mb-4" style="color:var(--navy);">নতুন বিষয় যোগ করুন</h3>
+      <label class="field-label">বিষয়ের নাম / Subject Name</label>
+      <input id="newSubjectName" class="input mb-3" placeholder="যেমনঃ উচ্চতর গণিত" />
+      <button class="btn btn-primary w-full" onclick="addSubject()">+ বিষয় যোগ করুন</button>
+
+      <div class="mt-6 pt-4" style="border-top:1px dashed var(--rule);">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-sm font-semibold">মোট অগ্রগতি</span>
+          <span class="badge badge-gold">${syllabusProgress()}%</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" style="width:${syllabusProgress()}%;"></div></div>
+      </div>
+    </div>
+
+    <div class="md:col-span-2 space-y-4">
+      ${DB.subjects.length===0 ? `<div class="card p-8 text-center" style="color:var(--muted);">কোনো বিষয় নেই। বামপাশ থেকে যোগ করুন।</div>` :
+      DB.subjects.map(s => {
+        const done = s.chapters.filter(c=>c.completed).length;
+        const pct = s.chapters.length ? Math.round(done/s.chapters.length*100) : 0;
+        return `
+        <div class="card p-5">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h4 class="font-bold text-base" style="color:var(--navy);">${escapeHtml(s.name)}</h4>
+              <span class="text-xs" style="color:var(--muted);">${done}/${s.chapters.length} chapters · ${pct}%</span>
+            </div>
+            <button class="btn btn-outline btn-sm" style="color:var(--bad); border-color:var(--bad);" onclick="deleteSubject('${s.id}')">মুছুন</button>
+          </div>
+          <div class="progress-track mb-3"><div class="progress-fill" style="width:${pct}%;"></div></div>
+
+          <div class="space-y-2 mb-3">
+            ${s.chapters.map(c=>`
+              <div class="chapter-row flex items-center justify-between py-2">
+                <label class="flex items-center gap-2 text-sm cursor-pointer">
+                  <input type="checkbox" ${c.completed?'checked':''} onchange="toggleChapter('${s.id}','${c.id}')" />
+                  <span class="${c.completed?'line-through':''}" style="${c.completed?'color:var(--muted)':''}">${escapeHtml(c.name)}</span>
+                </label>
+                <div class="flex items-center gap-2">
+                  <span class="badge ${c.completed?'badge-ok':'badge-muted'}">${c.completed?'Completed ✅':'Pending'}</span>
+                  <button class="text-xs" style="color:var(--bad);" onclick="deleteChapter('${s.id}','${c.id}')">✕</button>
+                </div>
+              </div>`).join('')}
+          </div>
+
+          <div class="flex gap-2">
+            <input id="newChapter_${s.id}" class="input" placeholder="নতুন অধ্যায়ের নাম" />
+            <button class="btn btn-outline btn-sm" onclick="addChapter('${s.id}')">+ যোগ</button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+}
+function addSubject(){
+  const el = document.getElementById('newSubjectName');
+  const name = el.value.trim();
+  if(!name){ showToast('বিষয়ের নাম দিন', 'error'); return; }
+  DB.subjects.push({id:uid('sub'), name, chapters:[]});
+  saveDB(DB); showToast('বিষয় যোগ হয়েছে ✓','success'); render();
+}
+function deleteSubject(id){
+  if(!confirm('এই বিষয়টি ও এর সকল অধ্যায় মুছে ফেলা হবে। নিশ্চিত?')) return;
+  DB.subjects = DB.subjects.filter(s=>s.id!==id);
+  saveDB(DB); render();
+}
+function addChapter(subjectId){
+  const el = document.getElementById('newChapter_'+subjectId);
+  const name = el.value.trim();
+  if(!name){ showToast('অধ্যায়ের নাম দিন','error'); return; }
+  const s = DB.subjects.find(s=>s.id===subjectId);
+  s.chapters.push({id:uid('ch'), name, completed:false});
+  saveDB(DB); render();
+}
+function deleteChapter(subjectId, chapterId){
+  const s = DB.subjects.find(s=>s.id===subjectId);
+  s.chapters = s.chapters.filter(c=>c.id!==chapterId);
+  saveDB(DB); render();
+}
+function toggleChapter(subjectId, chapterId){
+  const s = DB.subjects.find(s=>s.id===subjectId);
+  const c = s.chapters.find(c=>c.id===chapterId);
+  c.completed = !c.completed;
+  saveDB(DB); render();
+}
+
+/* ---------- CREATE EXAM ---------- */
+let examDraftQuestions = [];
+function renderAdminCreateExam(){
+  const subjectOptions = DB.subjects.map(s=>`<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
+  return `
+  <div class="grid md:grid-cols-2 gap-6">
+    <div class="card p-6">
+      <h3 class="font-display font-bold text-lg mb-4" style="color:var(--navy);">নতুন পরীক্ষা তৈরি করুন</h3>
+      <div class="space-y-3">
+        <div>
+          <label class="field-label">পরীক্ষার শিরোনাম / Exam Title</label>
+          <input id="examTitle" class="input" placeholder="যেমনঃ দ্বিতীয় অধ্যায় মূল্যায়ন পরীক্ষা" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="field-label">বিষয় / Subject</label>
+            <select id="examSubject" class="input" onchange="refreshChapterOptions()">
+              <option value="">নির্বাচন করুন</option>${subjectOptions}
+            </select>
+          </div>
+          <div>
+            <label class="field-label">অধ্যায় / Chapter</label>
+            <select id="examChapter" class="input"><option value="">প্রথমে বিষয় নির্বাচন করুন</option></select>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="field-label">শুরুর সময় (ঐচ্ছিক)</label>
+            <input id="examStart" type="datetime-local" class="input" />
+          </div>
+          <div>
+            <label class="field-label">শেষ সময় (ঐচ্ছিক)</label>
+            <input id="examEnd" type="datetime-local" class="input" />
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="field-label">সময়কাল (মিনিট)</label>
+            <input id="examDuration" type="number" class="input" value="60" min="1" />
+          </div>
+          <div>
+            <label class="field-label">পজিটিভ মার্ক/প্রশ্ন</label>
+            <input id="examPositive" type="number" class="input" value="1" step="0.25" />
+          </div>
+          <div>
+            <label class="field-label">নেগেটিভ মার্ক/প্রশ্ন</label>
+            <input id="examNegative" type="number" class="input" value="0" step="0.25" min="0" />
+          </div>
+        </div>
+        <label class="flex items-center gap-2 text-sm"><input type="checkbox" id="examVisible" checked /> প্রকাশ করুন (Visible to students)</label>
+      </div>
+    </div>
+
+    <div class="card p-6">
+      <h3 class="font-display font-bold text-lg mb-2" style="color:var(--navy);">প্রশ্ন ইম্পোর্ট (Bulk JSON)</h3>
+      <p class="text-xs mb-2" style="color:var(--muted);">নিচের ফরম্যাটে JSON পেস্ট করুন এবং "Parse" চাপুন।</p>
+      <textarea id="questionJson" class="input" rows="10" placeholder='[
+  {
+    "id": 1,
+    "question": "যদি $f(x)=\\\\frac{x+1}{x-1}$ হয়, $f(2)$ কত?",
+    "options": ["A) 1","B) 3","C) 2","D) 0"],
+    "answer": "B) 3",
+    "solution": "সল্যুশন: $f(2)=\\\\frac{3}{1}=3$"
+  }
+]'></textarea>
+      <div class="flex gap-2 mt-2">
+        <button class="btn btn-outline btn-sm" onclick="parseQuestionJson()">Parse প্রশ্নসমূহ</button>
+        <button class="btn btn-outline btn-sm" onclick="examDraftQuestions=[]; render();">Clear</button>
+      </div>
+      <div class="mt-3 text-sm" style="color:var(--muted);">${examDraftQuestions.length} টি প্রশ্ন লোড হয়েছে</div>
+      <div class="mt-2 max-h-56 overflow-y-auto space-y-2">
+        ${examDraftQuestions.map((q,i)=>`<div class="text-xs p-2 rounded" style="background:var(--paper); border:1px solid var(--rule);">
+          <b>Q${i+1}.</b> ${escapeHtml((q.question||'').slice(0,90))}${(q.question||'').length>90?'…':''}
+        </div>`).join('')}
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-6 flex justify-end">
+    <button class="btn btn-emerald" onclick="saveNewExam()">✓ পরীক্ষা সংরক্ষণ করুন</button>
+  </div>`;
+}
+function refreshChapterOptions(){
+  const subId = document.getElementById('examSubject').value;
+  const chSel = document.getElementById('examChapter');
+  const s = DB.subjects.find(s=>s.id===subId);
+  if(!s){ chSel.innerHTML = '<option value="">প্রথমে বিষয় নির্বাচন করুন</option>'; return; }
+  chSel.innerHTML = '<option value="">নির্বাচন করুন</option>' + s.chapters.map(c=>`<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+}
+function parseQuestionJson(){
+  const raw = document.getElementById('questionJson').value;
+  try{
+    const arr = JSON.parse(raw);
+    if(!Array.isArray(arr)) throw new Error('JSON must be an array');
+    examDraftQuestions = arr.map((q,i)=>({
+      id: q.id !== undefined ? q.id : (i+1),
+      question: q.question || '',
+      options: Array.isArray(q.options) ? q.options : [],
+      answer: q.answer || '',
+      solution: q.solution || ''
+    }));
+    showToast(examDraftQuestions.length + ' টি প্রশ্ন সফলভাবে পার্স হয়েছে ✓','success');
+    render();
+  }catch(e){
+    showToast('JSON পার্স করতে ব্যর্থ: '+e.message, 'error');
+  }
+}
+function saveNewExam(){
+  const title = document.getElementById('examTitle').value.trim();
+  const subjectId = document.getElementById('examSubject').value;
+  const chapterId = document.getElementById('examChapter').value;
+  const startTime = document.getElementById('examStart').value;
+  const endTime = document.getElementById('examEnd').value;
+  const duration = parseInt(document.getElementById('examDuration').value) || 60;
+  const positiveMarks = parseFloat(document.getElementById('examPositive').value) || 1;
+  const negativeMarks = parseFloat(document.getElementById('examNegative').value) || 0;
+  const visible = document.getElementById('examVisible').checked;
+
+  if(!title){ showToast('পরীক্ষার শিরোনাম দিন','error'); return; }
+  if(!subjectId || !chapterId){ showToast('বিষয় ও অধ্যায় নির্বাচন করুন','error'); return; }
+  if(examDraftQuestions.length===0){ showToast('অন্তত একটি প্রশ্ন যোগ করুন (JSON Import)','error'); return; }
+
+  const subj = DB.subjects.find(s=>s.id===subjectId);
+  const chap = subj.chapters.find(c=>c.id===chapterId);
+
+  const exam = {
+    id: uid('exam'),
+    title, subjectId, chapterId,
+    subjectName: subj.name, chapterName: chap.name,
+    startTime: startTime || null, endTime: endTime || null,
+    duration, positiveMarks, negativeMarks, visible,
+    questions: examDraftQuestions,
+    createdAt: Date.now()
+  };
+  DB.exams.push(exam);
+  saveDB(DB);
+  examDraftQuestions = [];
+  showToast('পরীক্ষা তৈরি হয়েছে ✓','success');
+  UI.adminTab = 'manage';
+  render();
+}
+
+/* ---------- MANAGE EXAMS ---------- */
+function renderAdminManageExams(){
+  if(DB.exams.length===0) return `<div class="card p-8 text-center" style="color:var(--muted);">কোনো পরীক্ষা তৈরি হয়নি।</div>`;
+  return `
+  <div class="space-y-4">
+    ${[...DB.exams].reverse().map(e=>{
+      const attempts = DB.results.filter(r=>r.examId===e.id).length;
+      return `
+      <div class="card p-5 flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <h4 class="font-bold" style="color:var(--navy);">${escapeHtml(e.title)}</h4>
+            <span class="badge ${e.visible?'badge-ok':'badge-muted'}">${e.visible?'প্রকাশিত':'গোপন'}</span>
+          </div>
+          <p class="text-xs mt-1" style="color:var(--muted);">${escapeHtml(e.subjectName)} · ${escapeHtml(e.chapterName)} · ${e.questions.length} প্রশ্ন · ${e.duration} মিনিট · ${attempts} এটেম্পট</p>
+        </div>
+        <div class="flex gap-2 flex-wrap">
+          <button class="btn btn-outline btn-sm" onclick="toggleExamVisibility('${e.id}')">${e.visible?'👁️ গোপন করুন':'👁️ প্রকাশ করুন'}</button>
+          <button class="btn btn-outline btn-sm" style="color:var(--bad); border-color:var(--bad);" onclick="deleteExam('${e.id}')">🗑️ মুছুন</button>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+function toggleExamVisibility(id){
+  const e = DB.exams.find(e=>e.id===id); e.visible = !e.visible; saveDB(DB); render();
+}
+function deleteExam(id){
+  if(!confirm('এই পরীক্ষাটি মুছে ফেলা হবে। নিশ্চিত?')) return;
+  DB.exams = DB.exams.filter(e=>e.id!==id);
+  saveDB(DB); render();
+}
+
+/* ---------- ANALYTICS ---------- */
+function renderAdminAnalytics(){
+  if(DB.results.length===0) return `<div class="card p-8 text-center" style="color:var(--muted);">এখনো কোনো ফলাফল নেই।</div>`;
+  return `
+  <div class="card p-4 overflow-x-auto">
+    <table class="w-full text-sm min-w-[800px]">
+      <thead><tr class="text-left" style="color:var(--muted); border-bottom:1px solid var(--rule);">
+        <th class="py-2 pr-3">শিক্ষার্থী</th><th class="pr-3">রোল</th><th class="pr-3">পরীক্ষা</th><th class="pr-3">বিষয়/অধ্যায়</th>
+        <th class="pr-3">মার্ক</th><th class="pr-3">%</th><th class="pr-3">Tab Violation</th><th class="pr-3">তারিখ</th><th></th>
+      </tr></thead>
+      <tbody>
+      ${[...DB.results].reverse().map(r=>{
+        const stu = DB.students.find(s=>s.id===r.studentId);
+        const pct = r.totalMarks ? Math.round(r.score/r.totalMarks*100) : 0;
+        return `<tr class="chapter-row">
+          <td class="py-2 pr-3">${escapeHtml(r.studentName)}</td>
+          <td class="pr-3">${escapeHtml(stu?stu.roll:'-')}</td>
+          <td class="pr-3">${escapeHtml(r.examTitle)}</td>
+          <td class="pr-3 text-xs">${escapeHtml(r.subject)} / ${escapeHtml(r.chapter)}</td>
+          <td class="pr-3">${r.score}/${r.totalMarks}</td>
+          <td class="pr-3"><span class="badge ${pct>=40?'badge-ok':'badge-bad'}">${pct}%</span></td>
+          <td class="pr-3">${r.violations>0?`<span class="badge badge-bad">${r.violations}</span>`:'<span class="badge badge-muted">0</span>'}</td>
+          <td class="pr-3 text-xs">${new Date(r.date).toLocaleString('bn-BD')}</td>
+          <td><button class="btn btn-outline btn-sm" onclick="viewResult('${r.id}','admin')">দেখুন</button></td>
+        </tr>`;
+      }).join('')}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+/* ---------- BACKUP / RESTORE ---------- */
+function renderAdminBackup(){
+  return `
+  <div class="grid md:grid-cols-2 gap-6">
+    <div class="card p-6">
+      <h3 class="font-display font-bold text-lg mb-2" style="color:var(--navy);">📤 Export System Data</h3>
+      <p class="text-sm mb-4" style="color:var(--muted);">সকল সিলেবাস, প্রশ্ন, পরীক্ষা এবং ফলাফল JSON ফাইলে এক্সপোর্ট করুন।</p>
+      <button class="btn btn-primary" onclick="exportData()">Export System Data (JSON)</button>
+    </div>
+    <div class="card p-6">
+      <h3 class="font-display font-bold text-lg mb-2" style="color:var(--navy);">📥 Import System Data</h3>
+      <p class="text-sm mb-4" style="color:var(--muted);">পূর্বে এক্সপোর্ট করা JSON ফাইল থেকে সব ডেটা রিস্টোর করুন। এটি বর্তমান ডেটা প্রতিস্থাপন করবে।</p>
+      <input type="file" id="importFile" accept=".json" class="input mb-3" />
+      <button class="btn btn-emerald" onclick="importData()">Import System Data (JSON)</button>
+    </div>
+  </div>
+  <div class="card p-6 mt-6">
+    <h3 class="font-display font-bold text-lg mb-2" style="color:var(--bad);">⚠️ বিপজ্জনক অঞ্চল / Danger Zone</h3>
+    <p class="text-sm mb-3" style="color:var(--muted);">এটি সকল ডেটা মুছে ফেলবে এবং নতুন করে শুরু করবে।</p>
+    <button class="btn btn-danger" onclick="resetAllData()">সব ডেটা রিসেট করুন</button>
+  </div>`;
+}
+function exportData(){
+  const blob = new Blob([JSON.stringify(DB, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'exam-portal-backup-'+new Date().toISOString().slice(0,10)+'.json';
+  a.click(); URL.revokeObjectURL(url);
+  showToast('ডেটা এক্সপোর্ট সম্পন্ন ✓','success');
+}
+function importData(){
+  const file = document.getElementById('importFile').files[0];
+  if(!file){ showToast('একটি ফাইল নির্বাচন করুন','error'); return; }
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      const data = JSON.parse(e.target.result);
+      if(!data.subjects || !data.exams){ throw new Error('Invalid backup file'); }
+      DB = data; saveDB(DB);
+      showToast('ডেটা ইম্পোর্ট সফল ✓','success');
+      render();
+    }catch(err){ showToast('ইম্পোর্ট ব্যর্থ: '+err.message,'error'); }
+  };
+  reader.readAsText(file);
+}
+function resetAllData(){
+  if(!confirm('সত্যিই সব ডেটা মুছে ফেলতে চান? এই কাজ ফিরিয়ে নেওয়া যাবে না।')) return;
+  DB = defaultDB(); saveDB(DB); render();
+}
+
+/* ---------- SETTINGS ---------- */
+function renderAdminSettings(){
+  return `
+  <div class="card p-6 max-w-md">
+    <h3 class="font-display font-bold text-lg mb-4" style="color:var(--navy);">অ্যাডমিন পাসওয়ার্ড পরিবর্তন</h3>
+    <label class="field-label">নতুন পাসওয়ার্ড</label>
+    <input id="newAdminPass" type="password" class="input mb-3" placeholder="নতুন পাসওয়ার্ড লিখুন" />
+    <button class="btn btn-primary" onclick="changeAdminPassword()">পাসওয়ার্ড আপডেট করুন</button>
+  </div>`;
+}
+function changeAdminPassword(){
+  const val = document.getElementById('newAdminPass').value.trim();
+  if(val.length<4){ showToast('অন্তত ৪ অক্ষরের পাসওয়ার্ড দিন','error'); return; }
+  DB.adminPassword = val; saveDB(DB);
+  showToast('পাসওয়ার্ড পরিবর্তন হয়েছে ✓','success');
+}
+
+/* =========================================================================
+   STUDENT SHELL
+   ========================================================================= */
+function renderStudentShell(){
+  const stu = currentStudent();
+  if(!stu){ logout(); return ''; }
+  const tabs = [['dashboard','ড্যাশবোর্ড','⌂'],['exams','পরীক্ষাসমূহ','▤'],['syllabus','সিলেবাস ট্র্যাকার','◫'],['history','ইতিহাস','◷']];
+  return `
+  <div class="portal-shell">
+    <aside class="portal-sidebar no-print">
+      <div class="portal-brand"><div class="portal-brand-mark">E</div><div><div class="portal-brand-title">Exam Portal</div><div class="portal-brand-role">STUDENT LEARNING HUB</div></div></div>
+      <div class="portal-nav">
+        ${tabs.map(t=>`<button class="portal-nav-btn ${UI.studentTab===t[0]?'active':''}" onclick="setStudentTab('${t[0]}')"><span class="portal-nav-icon">${t[2]}</span><span>${t[1]}</span></button>`).join('')}
+      </div>
+      <div class="portal-sidebar-footer"><div class="text-xs font-bold mb-1"><span class="status-dot"></span> লার্নিং মোড সক্রিয়</div><div class="text-[10px]" style="color:#cbd5e1;">Keep learning · Keep improving</div></div>
+    </aside>
+    <main class="portal-main">
+      ${topbar('Student', stu.name)}
+      <div class="portal-mobile-nav no-print"><div class="font-display font-bold text-sm" style="color:var(--navy);">Student</div><div class="flex gap-1 overflow-x-auto">${tabs.map(t=>`<button class="portal-switch-btn ${UI.studentTab===t[0]?'active':''}" onclick="setStudentTab('${t[0]}')">${t[1]}</button>`).join('')}</div></div>
+      <div class="portal-content">
+        <div class="portal-page-head"><div><div class="portal-page-title">স্টুডেন্ট ড্যাশবোর্ড</div><div class="portal-page-subtitle">আপনার পরীক্ষা, সিলেবাস ও অগ্রগতি সুন্দরভাবে ট্র্যাক করুন</div></div>
+          <div class="portal-section-switch no-print"><button class="portal-switch-btn active">🎓 Student Section</button></div>
+        </div>
+        <div class="fade-in">${ UI.studentTab==='dashboard' ? renderStudentDashboardHome() : UI.studentTab==='exams' ? renderStudentExams() : UI.studentTab==='syllabus' ? renderStudentSyllabus() : renderStudentHistory() }</div>
+      </div>
+    </main>
+  </div>`;
+}
+function setStudentTab(t){ UI.studentTab = t; render(); }
+
+function examAvailability(exam){
+  const now = new Date();
+  if(exam.startTime && now < new Date(exam.startTime)) return {ok:false, msg:'শুরু হবে: '+new Date(exam.startTime).toLocaleString('bn-BD')};
+  if(exam.endTime && now > new Date(exam.endTime)) return {ok:false, msg:'সময়সীমা শেষ হয়ে গেছে'};
+  return {ok:true};
+}
+
+/* =========================================================================
+   STUDENT DASHBOARD HOME — welcome banner, targets, subject grid, heatmap
+   ========================================================================= */
+const SUBJECT_THEMES = [
+  { bg:'#EEF2FF', bgDark:'#242F4D', fg:'#4F46E5', fgDark:'#A5B4FC' },  // indigo (fallback)
+  { bg:'#FDF2F8', bgDark:'#3A1E33', fg:'#DB2777', fgDark:'#F9A8D4' },  // pink (fallback)
+  { bg:'#FFF7ED', bgDark:'#3A2A13', fg:'#EA580C', fgDark:'#FDBA74' },  // orange (fallback)
+  { bg:'#F0FDFA', bgDark:'#0F3D38', fg:'#0D9488', fgDark:'#5EEAD4' }   // teal (fallback)
+];
+/* Named palette per spec: Physics=amber, Chemistry=purple, Higher Math=blue/cyan, English=green */
+function getSubjectTheme(name, idx){
+  const key = (name||'').toLowerCase();
+  if(key.includes('physic'))  return { bg:'#FEF3C7', bgDark:'rgba(180,83,9,.28)',  fg:'#B45309', fgDark:'#FCD34D' };   // amber/yellow
+  if(key.includes('chem'))    return { bg:'#F3E8FF', bgDark:'rgba(126,34,206,.28)', fg:'#7E22CE', fgDark:'#D8B4FE' };  // purple/pink
+  if(key.includes('math'))    return { bg:'#E0F2FE', bgDark:'rgba(3,105,161,.28)',  fg:'#0369A1', fgDark:'#7DD3FC' };  // blue/cyan
+  if(key.includes('english')) return { bg:'#D1FAE5', bgDark:'rgba(4,120,87,.28)',   fg:'#047857', fgDark:'#6EE7B7' };  // green
+  return SUBJECT_THEMES[idx % SUBJECT_THEMES.length];
+}
+const WEEK_DAYS = [['sun','রবি'],['mon','সোম'],['tue','মঙ্গল'],['wed','বুধ'],['thu','বৃহঃ'],['fri','শুক্র'],['sat','শনি']];
+
+function todayISO(){ return new Date().toISOString().slice(0,10); }
+
+function computeStreak(stu){
+  const dates = new Set(DB.results.filter(r=>r.studentId===stu.id).map(r=>new Date(r.date).toISOString().slice(0,10)));
+  let streak=0, d=new Date();
+  while(true){
+    const iso = d.toISOString().slice(0,10);
+    if(dates.has(iso)){ streak++; d.setDate(d.getDate()-1); } else break;
+  }
+  return streak;
+}
+
+function renderRing(percent, size, stroke){
+  size = size||118; stroke = stroke||11;
+  const r = (size-stroke)/2, c = 2*Math.PI*r, offset = c - (Math.max(0,Math.min(100,percent))/100)*c;
+  return `
+  <div style="position:relative; width:${size}px; height:${size}px; margin:0 auto;">
+    <svg width="${size}" height="${size}" style="transform:rotate(-90deg);">
+      <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="rgba(255,255,255,.28)" stroke-width="${stroke}"/>
+      <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="#fff" stroke-width="${stroke}" stroke-linecap="round"
+        stroke-dasharray="${c}" stroke-dashoffset="${offset}" style="transition:stroke-dashoffset .6s ease;"/>
+    </svg>
+    <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center;">
+      <span class="font-display" style="font-size:1.4rem; font-weight:800; color:#fff;">${percent}%</span>
+    </div>
+  </div>`;
+}
+
+/* ---- Daily Exam Target widget ---- */
+function toggleDailyPicker(){ UI.showDailyPicker = !UI.showDailyPicker; render(); }
+function setDailyTarget(examId){
+  const stu = currentStudent();
+  stu.dailyTarget = examId ? {date: todayISO(), examId} : null;
+  saveDB(DB);
+  UI.showDailyPicker = false;
+  render();
+}
+function renderDailyTargetWidget(stu){
+  const visibleExams = DB.exams.filter(e=>e.visible);
+  const target = (stu.dailyTarget && stu.dailyTarget.date===todayISO()) ? DB.exams.find(e=>e.id===stu.dailyTarget.examId) : null;
+  return `
+  <div class="card p-5 daily-target-card" style="border-left:4px solid #6D28D9;">
+    <h4 class="font-display font-bold mb-3 flex items-center gap-2" style="color:var(--navy);">🎯 আজকের এক্সাম টার্গেট</h4>
+    ${target ? `
+      <div class="p-3 rounded-xl mb-3" style="background:var(--paper-2); border:1px solid var(--rule);">
+        <div class="font-semibold text-sm">${escapeHtml(target.title)}</div>
+        <div class="text-xs mt-1" style="color:var(--muted);">${escapeHtml(target.subjectName)} · ${escapeHtml(target.chapterName)}</div>
+      </div>
+      <div class="flex gap-2">
+        <button class="btn btn-emerald btn-sm flex-1" onclick="startExam('${target.id}')">▶ শুরু করুন</button>
+        <button class="btn btn-outline btn-sm" onclick="setDailyTarget(null)">✕ বাতিল</button>
+      </div>
+    ` : `
+      <p class="text-sm mb-3" style="color:var(--muted);">আজকের জন্য কোনো টার্গেট নির্বাচন করা হয়নি।</p>
+      ${UI.showDailyPicker ? `
+        <select class="input mb-2" onchange="setDailyTarget(this.value)">
+          <option value="">পরীক্ষা নির্বাচন করুন...</option>
+          ${visibleExams.map(e=>`<option value="${e.id}">${escapeHtml(e.title)}</option>`).join('')}
+        </select>
+        <button class="btn btn-outline btn-sm w-full" onclick="toggleDailyPicker()">বাতিল</button>
+      ` : `
+        <button class="btn btn-emerald btn-sm w-full" onclick="toggleDailyPicker()">+ Select Exam</button>
+      `}
+    `}
+  </div>`;
+}
+
+/* ---- Weekly Exam Schedule widget ---- */
+function toggleWeeklyPicker(day){ UI.showWeeklyPickerDay = (UI.showWeeklyPickerDay===day) ? null : day; render(); }
+function setWeeklySlot(day, examId){
+  const stu = currentStudent();
+  if(!stu.weeklySchedule) stu.weeklySchedule = {};
+  if(examId) stu.weeklySchedule[day] = examId; else delete stu.weeklySchedule[day];
+  saveDB(DB);
+  UI.showWeeklyPickerDay = null;
+  render();
+}
+function renderWeeklyScheduleWidget(stu){
+  const visibleExams = DB.exams.filter(e=>e.visible);
+  const sched = stu.weeklySchedule || {};
+  return `
+  <div class="card p-5 weekly-schedule-card">
+    <h4 class="font-display font-bold mb-3 flex items-center gap-2" style="color:var(--navy);">📅 সাপ্তাহিক এক্সাম শিডিউল</h4>
+    <div class="grid grid-cols-7 gap-1.5">
+      ${WEEK_DAYS.map(([key,label])=>{
+        const examId = sched[key];
+        const exam = examId ? DB.exams.find(e=>e.id===examId) : null;
+        const isOpen = UI.showWeeklyPickerDay===key;
+        return `
+        <div class="text-center">
+          <div class="text-[10px] font-semibold mb-1" style="color:var(--muted);">${label}</div>
+          ${exam ? `
+            <div class="schedule-day-bar has-exam" title="${escapeHtml(exam.title)} (ক্লিক করে সরান)" onclick="setWeeklySlot('${key}', null)">
+              <span>${escapeHtml(exam.title.length>10?exam.title.slice(0,9)+'…':exam.title)}</span>
+            </div>
+          ` : isOpen ? `
+            <select class="input" style="padding:.35rem .4rem; font-size:.62rem; min-height:42px; border-radius:11px;" onchange="setWeeklySlot('${key}', this.value)">
+              <option value="">--</option>
+              ${visibleExams.map(e=>`<option value="${e.id}">${escapeHtml(e.title.length>16?e.title.slice(0,15)+'…':e.title)}</option>`).join('')}
+            </select>
+          ` : `
+            <button class="schedule-day-bar" onclick="toggleWeeklyPicker('${key}')">＋ যোগ করুন</button>
+          `}
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+}
+
+/* ---- Subject Cards Grid ---- */
+function renderSubjectCardsGrid(){
+  if(DB.subjects.length===0) return `<div class="card p-8 text-center" style="color:var(--muted);">এখনো কোনো বিষয় যোগ করা হয়নি।</div>`;
+  const dark = document.documentElement.classList.contains('dark');
+  return `
+  <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    ${DB.subjects.map((s,i)=>{
+      const theme = getSubjectTheme(s.name, i);
+      const bg = dark ? theme.bgDark : theme.bg;
+      const fg = dark ? theme.fgDark : theme.fg;
+      const done = s.chapters.filter(c=>c.completed).length;
+      const pct = s.chapters.length ? Math.round(done/s.chapters.length*100) : 0;
+      return `
+      <div class="card p-5">
+        <div class="flex items-center justify-between mb-3">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center font-bold font-display" style="background:${bg}; color:${fg};">${escapeHtml(s.name.charAt(0))}</div>
+          <span class="font-display font-extrabold text-lg" style="color:${fg};">${pct}%</span>
+        </div>
+        <div class="font-bold text-sm mb-1">${escapeHtml(s.name)}</div>
+        <div class="text-xs mb-3" style="color:var(--muted);">${done}/${s.chapters.length} অধ্যায় সম্পন্ন</div>
+        <div class="progress-track mb-3"><div class="progress-fill" style="width:${pct}%; background:${fg};"></div></div>
+        <div class="flex flex-wrap gap-1.5">
+          ${s.chapters.slice(0,3).map(c=>`<span class="badge" style="background:${bg}; color:${fg};">${c.completed?'✅ ':''}${escapeHtml(c.name)}</span>`).join('')}
+          ${s.chapters.length>3 ? `<span class="badge badge-muted">+${s.chapters.length-3}</span>` : ''}
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+/* ---- Activity Heatmap + Streak ---- */
+function renderActivityHeatmap(stu){
+  const now = new Date();
+  const year = now.getFullYear(), month = now.getMonth();
+  const monthName = now.toLocaleDateString('en-US', {month:'long', year:'numeric'});
+  const startWeekday = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const todayDate = now.getDate();
+
+  const counts = {};
+  DB.results.filter(r=>r.studentId===stu.id).forEach(r=>{
+    const dt = new Date(r.date);
+    if(dt.getFullYear()===year && dt.getMonth()===month){
+      counts[dt.getDate()] = (counts[dt.getDate()]||0) + 1;
+    }
+  });
+
+  const cellStyle = (c)=>{
+    if(!c) return {bg:'var(--rule)', fg:'var(--muted)'};
+    if(c===1) return {bg:'var(--select-bg)', fg:'var(--navy)'};
+    if(c===2) return {bg:'var(--gold-soft)', fg:'var(--gold)'};
+    return {bg:'var(--navy)', fg:'#fff'};
+  };
+
+  const cells = [];
+  for(let i=0;i<startWeekday;i++) cells.push(null);
+  for(let day=1; day<=daysInMonth; day++) cells.push(day);
+
+  return `
+  <div class="card p-5">
+    <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+      <h4 class="font-display font-bold flex items-center gap-2" style="color:var(--navy);">📊 কার্যক্রম হিটম্যাপ — ${monthName}</h4>
+      <span class="badge" style="background:var(--amber-soft); color:var(--amber);">🔥 ${computeStreak(stu)} Day Streak</span>
+    </div>
+    <div class="grid grid-cols-7 gap-1.5 text-center text-[10px] mb-1.5" style="color:var(--muted);">
+      ${['র','সো','ম','বু','বৃ','শু','শ'].map(d=>`<div>${d}</div>`).join('')}
+    </div>
+    <div class="grid grid-cols-7 gap-1.5">
+      ${cells.map(day=>{
+        if(!day) return `<div></div>`;
+        const c = counts[day]||0;
+        const st = cellStyle(c);
+        const isToday = day===todayDate;
+        return `<div class="heatcell" title="${escapeHtml(String(day))} — ${c} পরীক্ষা" style="background:${st.bg}; color:${st.fg}; ${isToday?'box-shadow:0 0 0 2px var(--gold) inset;':''}">${day}</div>`;
+      }).join('')}
+    </div>
+  </div>`;
+}
+
+/* ---- Dashboard home assembly ---- */
+function renderStudentDashboardHome(){
+  const stu = currentStudent();
+  const progress = syllabusProgress();
+  const streak = computeStreak(stu);
+  const totalAttempts = DB.results.filter(r=>r.studentId===stu.id).length;
+  return `
+  <div class="space-y-6">
+    <div class="card banner-gradient p-6 md:p-8">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+        <div class="text-center md:text-left">
+          <p class="text-sm opacity-90 font-semibold">স্বাগতম 👋</p>
+          <h2 class="font-display text-2xl md:text-3xl font-extrabold mt-1">${escapeHtml(stu.name)}!</h2>
+          <p class="mt-1 opacity-90">পড়াশোনা থাকবে খুবই গোছানো ও স্মার্ট!</p>
+          <div class="flex items-center gap-2 mt-4 flex-wrap justify-center md:justify-start">
+            <span class="badge" style="background:#ECFDF5; color:#047857;">🔥 ${streak} Day Streak</span>
+            <span class="badge" style="background:var(--ok-soft); color:var(--ok);">📝 ${totalAttempts} Exams Taken</span>
+          </div>
+        </div>
+        <div class="text-center shrink-0">
+          ${renderRing(progress)}
+          <p class="text-xs mt-2 opacity-90 font-semibold">সার্বিক অগ্রগতি</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-5">
+      ${renderDailyTargetWidget(stu)}
+      ${renderWeeklyScheduleWidget(stu)}
+    </div>
+
+    <div>
+      <h3 class="font-display font-bold text-lg mb-3" style="color:var(--navy);">বিষয়ভিত্তিক অগ্রগতি</h3>
+      ${renderSubjectCardsGrid()}
+    </div>
+
+    ${renderActivityHeatmap(stu)}
+  </div>`;
+}
+
+function renderStudentExams(){
+  const stu = currentStudent();
+  const visibleExams = DB.exams.filter(e=>e.visible);
+  if(visibleExams.length===0) return `<div class="card p-8 text-center" style="color:var(--muted);">এখন কোনো পরীক্ষা প্রকাশিত নেই।</div>`;
+  return `
+  <div class="grid md:grid-cols-2 gap-4">
+    ${visibleExams.map(e=>{
+      const avail = examAvailability(e);
+      const attempted = DB.results.find(r=>r.examId===e.id && r.studentId===stu.id);
+      return `
+      <div class="card p-5">
+        <div class="flex items-start justify-between">
+          <div>
+            <h4 class="font-bold" style="color:var(--navy);">${escapeHtml(e.title)}</h4>
+            <p class="text-xs mt-1" style="color:var(--muted);">${escapeHtml(e.subjectName)} · ${escapeHtml(e.chapterName)}</p>
+          </div>
+          ${attempted ? `<span class="badge badge-ok">সম্পন্ন</span>` : `<span class="badge badge-gold">নতুন</span>`}
+        </div>
+        <div class="flex gap-3 text-xs mt-3" style="color:var(--muted);">
+          <span>⏱ ${e.duration} মিনিট</span>
+          <span>📄 ${e.questions.length} প্রশ্ন</span>
+          <span>➕${e.positiveMarks} / ➖${e.negativeMarks}</span>
+        </div>
+        <div class="mt-4">
+          ${attempted
+            ? `<button class="btn btn-outline w-full" onclick="viewResult('${attempted.id}','student')">ফলাফল দেখুন</button>`
+            : avail.ok
+              ? `<button class="btn btn-primary w-full" onclick="startExam('${e.id}')">▶ পরীক্ষা শুরু করুন</button>`
+              : `<button class="btn btn-outline w-full" disabled>${avail.msg}</button>`
+          }
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function renderStudentSyllabus(){
+  const progress = syllabusProgress();
+  return `
+  <div class="card p-6 mb-6">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="font-display font-bold text-lg" style="color:var(--navy);">সামগ্রিক সিলেবাস অগ্রগতি</h3>
+      <span class="badge badge-gold">${progress}%</span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" style="width:${progress}%;"></div></div>
+  </div>
+  <div class="space-y-4">
+  ${DB.subjects.length===0 ? `<div class="card p-8 text-center" style="color:var(--muted);">সিলেবাস এখনো যোগ করা হয়নি।</div>` :
+    DB.subjects.map(s=>{
+      const done = s.chapters.filter(c=>c.completed).length;
+      const pct = s.chapters.length ? Math.round(done/s.chapters.length*100) : 0;
+      return `
+      <div class="card p-5">
+        <div class="flex items-center justify-between mb-2">
+          <h4 class="font-bold" style="color:var(--navy);">${escapeHtml(s.name)}</h4>
+          <span class="text-xs" style="color:var(--muted);">${done}/${s.chapters.length}</span>
+        </div>
+        <div class="progress-track mb-3"><div class="progress-fill" style="width:${pct}%;"></div></div>
+        <div>
+          ${s.chapters.map(c=>`
+            <div class="chapter-row flex items-center justify-between py-2 text-sm">
+              <span class="${c.completed?'line-through':''}" style="${c.completed?'color:var(--muted)':''}">${escapeHtml(c.name)}</span>
+              <span class="badge ${c.completed?'badge-ok':'badge-muted'}">${c.completed?'Completed ✅':'Pending'}</span>
+            </div>`).join('')}
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function renderStudentHistory(){
+  const stu = currentStudent();
+  const mine = DB.results.filter(r=>r.studentId===stu.id);
+  if(mine.length===0) return `<div class="card p-8 text-center" style="color:var(--muted);">এখনো কোনো পরীক্ষা দেননি।</div>`;
+  return `
+  <div class="space-y-3">
+    ${[...mine].reverse().map(r=>{
+      const pct = r.totalMarks ? Math.round(r.score/r.totalMarks*100) : 0;
+      return `
+      <div class="card p-5 flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div>
+          <h4 class="font-bold" style="color:var(--navy);">${escapeHtml(r.examTitle)}</h4>
+          <p class="text-xs mt-1" style="color:var(--muted);">${escapeHtml(r.subject)} · ${escapeHtml(r.chapter)} · ${new Date(r.date).toLocaleString('bn-BD')}</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="badge ${pct>=40?'badge-ok':'badge-bad'}">${r.score}/${r.totalMarks} (${pct}%)</span>
+          <button class="btn btn-outline btn-sm" onclick="viewResult('${r.id}','student')">বিস্তারিত</button>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+/* =========================================================================
+   EXAM RUNNER
+   ========================================================================= */
+function startExam(examId){
+  const stu = currentStudent();
+  const exam = DB.exams.find(e=>e.id===examId);
+  if(!exam) return;
+  const avail = examAvailability(exam);
+  if(!avail.ok){ showToast(avail.msg,'error'); return; }
+
+  const progressKey = EXAM_PROGRESS_PREFIX + stu.id + '_' + examId;
+  let saved = null;
+  try{ saved = JSON.parse(localStorage.getItem(progressKey) || 'null'); }catch(e){}
+
+  if(saved){
+    UI.examSession = saved;
+  } else {
+    UI.examSession = {
+      examId, studentId: stu.id,
+      answers: {}, // qid -> chosen option string
+      startedAt: Date.now(),
+      violations: 0,
+      current: 0
+    };
+    localStorage.setItem(progressKey, JSON.stringify(UI.examSession));
+  }
+  UI.view = 'examRunner';
+  render();
+  attachAntiCheat();
+  startTimerLoop();
+}
+
+function saveExamProgress(){
+  if(!UI.examSession) return;
+  const key = EXAM_PROGRESS_PREFIX + UI.examSession.studentId + '_' + UI.examSession.examId;
+  localStorage.setItem(key, JSON.stringify(UI.examSession));
+}
+function clearExamProgress(session){
+  const key = EXAM_PROGRESS_PREFIX + session.studentId + '_' + session.examId;
+  localStorage.removeItem(key);
+}
+
+let timerInterval = null;
+function startTimerLoop(){
+  if(timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(()=>{
+    if(UI.view !== 'examRunner' || !UI.examSession){ clearInterval(timerInterval); return; }
+    const exam = DB.exams.find(e=>e.id===UI.examSession.examId);
+    if(!exam) return;
+    const elapsed = (Date.now() - UI.examSession.startedAt)/1000;
+    const remaining = exam.duration*60 - elapsed;
+    if(remaining <= 0){
+      clearInterval(timerInterval);
+      submitExam(true, 'সময় শেষ হয়ে গেছে');
+      return;
+    }
+    updateTimerDisplay(remaining);
+  }, 1000);
+}
+function updateTimerDisplay(remaining){
+  const el = document.getElementById('examTimer');
+  if(!el) return;
+  const h = Math.floor(remaining/3600), m = Math.floor((remaining%3600)/60), s = Math.floor(remaining%60);
+  el.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  if(remaining < 60) el.style.color = 'var(--bad)';
+}
+
+let cheatHandlersAttached = false;
+function attachAntiCheat(){
+  if(cheatHandlersAttached) return;
+  cheatHandlersAttached = true;
+  document.addEventListener('visibilitychange', onVisibilityChange);
+  window.addEventListener('blur', onWindowBlur);
+}
+function detachAntiCheat(){
+  document.removeEventListener('visibilitychange', onVisibilityChange);
+  window.removeEventListener('blur', onWindowBlur);
+  cheatHandlersAttached = false;
+}
+function onVisibilityChange(){
+  if(document.hidden && UI.view==='examRunner' && UI.examSession) registerViolation();
+}
+function onWindowBlur(){
+  if(UI.view==='examRunner' && UI.examSession) registerViolation();
+}
+function registerViolation(){
+  if(!UI.examSession) return;
+  UI.examSession.violations = (UI.examSession.violations||0) + 1;
+  saveExamProgress();
+  if(UI.examSession.violations >= 3){
+    submitExam(true, 'পরপর ৩ বার ট্যাব পরিবর্তনের কারণে পরীক্ষা স্বয়ংক্রিয়ভাবে জমা দেওয়া হয়েছে');
+  } else {
+    showViolationOverlay(UI.examSession.violations);
+  }
+}
+function showViolationOverlay(count){
+  const overlay = document.createElement('div');
+  overlay.className = 'violation-overlay';
+  overlay.innerHTML = `
+    <div style="font-size:48px;">⚠️</div>
+    <h2 class="font-display text-2xl font-bold">সতর্কতা! Tab Switch Detected</h2>
+    <p>আপনি পরীক্ষার উইন্ডো থেকে সরে গেছেন। এটি লঙ্ঘন সংখ্যা: <b>${count}/3</b></p>
+    <p class="text-sm opacity-90">৩ বার হলে পরীক্ষা স্বয়ংক্রিয়ভাবে জমা হয়ে যাবে।</p>
+    <button class="btn" style="background:#fff; color:var(--bad); font-weight:700;" onclick="this.parentElement.remove()">বুঝেছি, চালিয়ে যান</button>
+  `;
+  document.body.appendChild(overlay);
+}
+
+/* Engineering-admission style: every question is rendered in order on ONE
+   continuously scrollable page, with a fixed header (title + timer + submit)
+   and a horizontally-scrollable quick-jump strip of question numbers. */
+function renderExamRunner(){
+  const exam = DB.exams.find(e=>e.id===UI.examSession.examId);
+  if(!exam){ UI.view='studentDashboard'; return renderStudentShell(); }
+  const total = exam.questions.length;
+  const answeredCount = Object.keys(UI.examSession.answers).length;
+
+  return `
+  <div class="min-h-screen">
+    <div class="sticky top-0 z-40 no-print" style="background:color-mix(in srgb, var(--paper-2) 88%, transparent); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); border-bottom:1px solid var(--rule); box-shadow:var(--card-shadow);">
+      <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between flex-wrap gap-3">
+        <div class="min-w-0">
+          <div class="font-bold text-base md:text-lg truncate" style="color:var(--navy);">${escapeHtml(exam.title)}</div>
+          <div class="text-xs md:text-sm" id="answeredCountText" style="color:var(--muted);">উত্তরকৃত: ${answeredCount}/${total} · লঙ্ঘন: ${UI.examSession.violations||0}/3</div>
+        </div>
+        <div class="flex items-center gap-3 shrink-0">
+          <div class="font-mono font-bold text-xl md:text-2xl" id="examTimer" style="color:var(--bad);">--:--:--</div>
+          <button class="btn btn-danger" onclick="confirmSubmit()">জমা দিন / Submit</button>
+        </div>
+      </div>
+      <div class="max-w-4xl mx-auto px-4 pb-2 overflow-x-auto">
+        <div class="flex gap-1.5">
+          ${exam.questions.map((qq,i)=>{
+            const answered = UI.examSession.answers[qq.id]!==undefined;
+            return `<a href="#qblock-${qq.id}" id="navchip-${qq.id}" class="shrink-0 text-xs md:text-sm font-bold rounded-md px-2.5 py-1"
+              style="border:1.5px solid var(--rule); background:${answered?'var(--select-bg)':'transparent'}; border-color:${answered?'var(--navy)':'var(--rule)'};">${i+1}</a>`;
+          }).join('')}
+        </div>
+      </div>
+    </div>
+
+    <div class="max-w-3xl mx-auto px-4 py-6 space-y-5">
+      ${exam.questions.map((q,i)=>renderExamQuestionBlock(q,i)).join('')}
+      <div class="flex justify-center pt-2 pb-12">
+        <button class="btn btn-danger" style="font-size:1.05rem; padding:.85rem 2.2rem;" onclick="confirmSubmit()">✓ পরীক্ষা জমা দিন / Submit Exam</button>
+      </div>
+    </div>
+  </div>`;
+}
+function renderExamQuestionBlock(q, i){
+  return `
+  <div class="card p-5 md:p-6" id="qblock-${q.id}">
+    <div class="flex items-center justify-between mb-3">
+      <span class="badge badge-gold" style="font-size:.85rem;">প্রশ্ন ${i+1}</span>
+    </div>
+    <div class="question-text mb-4">${renderMathText(q.question)}</div>
+    <div class="space-y-3" id="options-${q.id}">
+      ${q.options.map(opt=>{
+        const selected = UI.examSession.answers[q.id]===opt;
+        return `<div class="option-row ${selected?'selected':''}" data-qid="${escapeHtml(String(q.id))}" data-opt="${encodeURIComponent(opt)}" onclick="selectAnswer(this)">
+          <span class="option-text">${renderMathText(opt)}</span>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+}
+function renderMathText(text){
+  return escapeHtml(text).replace(/\n/g,'<br>');
+}
+/* Updates answer state + DOM directly (no full re-render) so the student's
+   scroll position on the long single-page exam is never lost. */
+function selectAnswer(el){
+  const qid = el.getAttribute('data-qid');
+  const opt = decodeURIComponent(el.getAttribute('data-opt'));
+  UI.examSession.answers[qid] = opt;
+  saveExamProgress();
+
+  const group = document.getElementById('options-'+qid);
+  if(group){ group.querySelectorAll('.option-row').forEach(r=>r.classList.remove('selected')); }
+  el.classList.add('selected');
+
+  const chip = document.getElementById('navchip-'+qid);
+  if(chip){ chip.style.background = 'var(--select-bg)'; chip.style.borderColor = 'var(--navy)'; }
+
+  const exam = DB.exams.find(e=>e.id===UI.examSession.examId);
+  if(exam){
+    const answeredCount = Object.keys(UI.examSession.answers).length;
+    const counterEl = document.getElementById('answeredCountText');
+    if(counterEl) counterEl.textContent = `উত্তরকৃত: ${answeredCount}/${exam.questions.length} · লঙ্ঘন: ${UI.examSession.violations||0}/3`;
+  }
+  attachAntiCheat();
+  typeset();
+}
+function confirmSubmit(){
+  if(confirm('আপনি কি নিশ্চিতভাবে পরীক্ষা জমা দিতে চান?')) submitExam(false);
+}
+function submitExam(auto, reasonMsg){
+  const exam = DB.exams.find(e=>e.id===UI.examSession.examId);
+  const stu = DB.students.find(s=>s.id===UI.examSession.studentId);
+  let correct=0, incorrect=0, unattempted=0, score=0;
+  const totalMarks = exam.questions.length * exam.positiveMarks;
+
+  exam.questions.forEach(q=>{
+    const given = UI.examSession.answers[q.id];
+    if(given===undefined){ unattempted++; }
+    else if(given===q.answer){ correct++; score += exam.positiveMarks; }
+    else { incorrect++; score -= exam.negativeMarks; }
+  });
+  score = Math.round(score*100)/100;
+
+  const result = {
+    id: uid('res'),
+    studentId: stu.id, studentName: stu.name,
+    examId: exam.id, examTitle: exam.title,
+    subject: exam.subjectName, chapter: exam.chapterName,
+    answers: UI.examSession.answers,
+    score, totalMarks, correct, incorrect, unattempted,
+    violations: UI.examSession.violations||0,
+    date: Date.now()
+  };
+  DB.results.push(result);
+  markChapterCompleted(exam.subjectId, exam.chapterId);
+  saveDB(DB);
+  clearExamProgress(UI.examSession);
+  detachAntiCheat();
+  if(timerInterval) clearInterval(timerInterval);
+
+  UI.examSession = null;
+  UI.view = 'examResult';
+  UI.resultView = result.id;
+  render();
+  if(auto && reasonMsg) setTimeout(()=>showToast(reasonMsg, 'error'), 200);
+}
+
+/* =========================================================================
+   RESULT DETAIL + PDF PRINT
+   ========================================================================= */
+function viewResult(resultId, role){
+  UI.resultView = resultId;
+  UI.view = 'examResult';
+  render();
+}
+function backFromResult(){
+  const session = getSession();
+  UI.view = session.role==='admin' ? 'adminDashboard' : 'studentDashboard';
+  render();
+}
+function renderResultDetail(resultId){
+  const r = DB.results.find(r=>r.id===resultId);
+  if(!r) return `<div class="p-8 text-center">Result not found.</div>`;
+  const exam = DB.exams.find(e=>e.id===r.examId);
+  const pct = r.totalMarks ? Math.round(r.score/r.totalMarks*100) : 0;
+  const stu = DB.students.find(s=>s.id===r.studentId);
+
+  const summaryCard = (label, value, color) => `
+    <div class="card p-4 text-center">
+      <div class="text-2xl font-bold font-display" style="color:${color||'var(--navy)'};">${value}</div>
+      <div class="text-xs mt-1" style="color:var(--muted);">${label}</div>
+    </div>`;
+
+  const questionsHtml = exam ? exam.questions.map((q,i)=>{
+    const given = r.answers[q.id];
+    const isCorrect = given===q.answer;
+    return `
+    <div class="card p-5 mb-4">
+      <div class="flex items-center justify-between mb-2">
+        <span class="badge badge-gold">প্রশ্ন ${i+1}</span>
+        ${given===undefined ? `<span class="badge badge-muted">অনুত্তরিত</span>` : isCorrect ? `<span class="badge badge-ok">সঠিক ✓</span>` : `<span class="badge badge-bad">ভুল ✗</span>`}
+      </div>
+      <div class="mb-3">${renderMathText(q.question)}</div>
+      <div class="space-y-2 mb-3">
+        ${q.options.map(opt=>{
+          let cls = 'option-row';
+          if(opt===q.answer) cls += ' correct';
+          else if(opt===given && !isCorrect) cls += ' incorrect';
+          return `<div class="${cls}">${renderMathText(opt)}${opt===given?' <span class="text-xs" style="color:var(--muted);">(আপনার উত্তর)</span>':''}${opt===q.answer?' <span class="text-xs" style="color:var(--ok);">(সঠিক উত্তর)</span>':''}</div>`;
+        }).join('')}
+      </div>
+      <div class="p-3 rounded-lg text-sm" style="background:var(--paper); border:1px dashed var(--rule);">
+        <b style="color:var(--navy);">✍️ সমাধান:</b><br>${renderMathText(q.solution)}
+      </div>
+    </div>`;
+  }).join('') : '<p>পরীক্ষার তথ্য পাওয়া যায়নি (মুছে ফেলা হয়েছে)।</p>';
+
+  // build print area content too
+  setTimeout(()=>buildPrintArea(r, exam, stu), 0);
+
+  return `
+  ${topbar( getSession().role==='admin'?'Admin':'Student', getSession().role==='admin'?'Administrator':(stu?stu.name:'') )}
+  <div class="max-w-4xl mx-auto px-4 py-6">
+    <button class="btn btn-outline btn-sm mb-4 no-print" onclick="backFromResult()">← ফিরে যান</button>
+
+    <div class="card p-6 mb-6">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <div>
+          <h2 class="font-display text-xl font-bold" style="color:var(--navy);">${escapeHtml(r.examTitle)}</h2>
+          <p class="text-xs mt-1" style="color:var(--muted);">${escapeHtml(r.subject)} · ${escapeHtml(r.chapter)} · ${escapeHtml(stu?stu.name:'')} (${escapeHtml(stu?stu.roll:'')}) · ${new Date(r.date).toLocaleString('bn-BD')}</p>
+        </div>
+        <button class="btn btn-gold no-print" onclick="downloadPdf()">⬇ Download Exam &amp; Solution PDF</button>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+        ${summaryCard('মোট স্কোর', r.score+'/'+r.totalMarks, 'var(--navy)')}
+        ${summaryCard('সঠিক', r.correct, 'var(--ok)')}
+        ${summaryCard('ভুল', r.incorrect, 'var(--bad)')}
+        ${summaryCard('অনুত্তরিত', r.unattempted, 'var(--muted)')}
+        ${summaryCard('শতকরা', pct+'%', pct>=40?'var(--ok)':'var(--bad)')}
+      </div>
+      ${r.violations>0 ? `<div class="mt-4 text-xs badge badge-bad inline-block">⚠ Tab Violations: ${r.violations}</div>` : ''}
+    </div>
+
+    <h3 class="font-display text-lg font-bold mb-3" style="color:var(--navy);">বিস্তারিত পর্যালোচনা / Detailed Review</h3>
+    ${questionsHtml}
+  </div>`;
+}
+
+function buildPrintArea(r, exam, stu){
+  const pct = r.totalMarks ? Math.round(r.score/r.totalMarks*100) : 0;
+  const questionsHtml = exam ? exam.questions.map((q,i)=>{
+    const given = r.answers[q.id];
+    const isCorrect = given===q.answer;
+    return `
+    <div class="p-question">
+      <p><b>প্রশ্ন ${i+1}:</b> ${renderMathText(q.question)}</p>
+      <p style="margin:4px 0;">${q.options.map(o=>escapeHtml(o)).join(' &nbsp; ')}</p>
+      <p style="font-size:13px;">আপনার উত্তর: <b>${escapeHtml(given!==undefined?given:'অনুত্তরিত')}</b> &nbsp;|&nbsp; সঠিক উত্তর: <b>${escapeHtml(q.answer)}</b> &nbsp;|&nbsp; ${isCorrect?'✔ সঠিক':(given===undefined?'— অনুত্তরিত':'✘ ভুল')}</p>
+      <p style="font-size:13px;"><b>সমাধান:</b> ${renderMathText(q.solution)}</p>
+    </div>`;
+  }).join('') : '';
+
+  document.getElementById('printArea').innerHTML = `
+    <div style="font-family:'Hind Siliguri',sans-serif;">
+      <h1 style="font-size:20px; margin-bottom:4px;">${escapeHtml(r.examTitle)}</h1>
+      <p style="font-size:13px; color:#444;">বিষয়: ${escapeHtml(r.subject)} | অধ্যায়: ${escapeHtml(r.chapter)} | তারিখ: ${new Date(r.date).toLocaleString('bn-BD')}</p>
+      <p style="font-size:13px; color:#444;">শিক্ষার্থী: ${escapeHtml(stu?stu.name:'')} | রোল/আইডি: ${escapeHtml(stu?stu.roll:'')}</p>
+      <p style="font-size:14px; margin:10px 0; padding:8px; border:1px solid #999;">
+        স্কোর: <b>${r.score}/${r.totalMarks}</b> (${pct}%) &nbsp; | &nbsp; সঠিক: ${r.correct} &nbsp; ভুল: ${r.incorrect} &nbsp; অনুত্তরিত: ${r.unattempted}
+      </p>
+      <hr>
+      ${questionsHtml}
+    </div>`;
+  if(window.MathJax && MathJax.typesetPromise){ MathJax.typesetPromise([document.getElementById('printArea')]).catch(()=>{}); }
+}
+function downloadPdf(){
+  window.print();
+}
+
+/* =========================================================================
+   GLOBAL HANDLERS / BOOT
+   ========================================================================= */
+function attachGlobalHandlers(){
+  window.onbeforeunload = function(){
+    if(UI.view==='examRunner' && UI.examSession){ saveExamProgress(); }
+  };
+}
+
+render();
+</script>
+</body>
+</html>
